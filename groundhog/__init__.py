@@ -1,0 +1,4 @@
+"""
+Groundhog Python package initialization.
+"""
+

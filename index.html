@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groundhog Agent Chat</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #chat-container {
+            width: 80%;
+            max-width: 800px;
+            height: 90vh;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        #messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+        }
+        .message {
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        .message .sender {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        .message .content {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 85%;
+            white-space: pre-wrap; /* To respect newlines from agent */
+        }
+        .user .content {
+            background-color: #007bff;
+            color: white;
+            float: right;
+            clear: both;
+        }
+        .agent .content {
+            background-color: #e9ecef;
+            color: #333;
+            float: left;
+            clear: both;
+        }
+        #input-area {
+            display: flex;
+            padding: 15px;
+            align-items: center;
+        }
+        #pattern-select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        #message-input {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 18px;
+            padding: 10px 15px;
+            font-size: 16px;
+            outline: none;
+        }
+        #send-button {
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="messages"></div>
+        <div id="input-area">
+            <select id="pattern-select"></select>
+            <input type="text" id="message-input" placeholder="Type a message...">
+            <button id="send-button">&#x27A4;</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const messagesDiv = document.getElementById("messages");
+            const messageInput = document.getElementById("message-input");
+            const sendButton = document.getElementById("send-button");
+            const patternSelect = document.getElementById("pattern-select");
+
+            // Fetch and populate patterns
+            fetch("/patterns")
+                .then(response => response.json())
+                .then(patterns => {
+                    patterns.forEach(pattern => {
+                        const option = document.createElement("option");
+                        option.value = pattern;
+                        option.textContent = pattern;
+                        patternSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error fetching patterns:", error));
+
+            const socket = new WebSocket("ws://" + window.location.host + "/ws");
+
+            socket.onopen = function(event) {
+                addMessage("agent", "Connected to the agent. How can I help you today?");
+            };
+
+            socket.onmessage = function(event) {
+                addMessage("agent", event.data);
+            };
+
+            socket.onclose = function(event) {
+                addMessage("agent", "Connection closed.");
+            };
+
+            socket.onerror = function(error) {
+                addMessage("agent", "An error occurred.");
+                console.error("WebSocket Error: ", error);
+            };
+
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                const selectedPattern = patternSelect.value;
+                if (message) {
+                    addMessage("user", message);
+                    
+                    const payload = {
+                        message: message,
+                        pattern: selectedPattern
+                    };
+                    socket.send(JSON.stringify(payload));
+                    
+                    messageInput.value = "";
+                }
+            }
+
+            sendButton.addEventListener("click", sendMessage);
+            messageInput.addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                    sendMessage();
+                }
+            });
+
+            function addMessage(sender, content) {
+                const messageContainer = document.createElement('div');
+                messageContainer.style.clear = 'both';
+
+                const messageElem = document.createElement("div");
+                messageElem.classList.add("message", sender);
+
+                const senderDiv = document.createElement("div");
+                senderDiv.classList.add("sender");
+                senderDiv.textContent = sender === 'user' ? 'You' : 'Agent';
+
+                const contentDiv = document.createElement("div");
+                contentDiv.classList.add("content");
+                contentDiv.textContent = content;
+                
+                messageElem.appendChild(senderDiv);
+                messageElem.appendChild(contentDiv);
+                messageContainer.appendChild(messageElem)
+                messagesDiv.appendChild(messageContainer);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
