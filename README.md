@@ -25,7 +25,8 @@ This is a Python-first rewrite of the Groundhog assistant. It keeps the same goa
    ```
    uvicorn groundhog.main:app --port 8080 --reload
    ```
-5. Connect a client to `ws://localhost:8080/ws` sending JSON `{"message": "...", "pattern": "Plan Day"}`.
+5. Login to test account at `http://localhost:8080/oauth/login`
+6. After login in test account application will have access to the calendar.
 
 ## Environment
 - `OPENAI_API_KEY` (required)
