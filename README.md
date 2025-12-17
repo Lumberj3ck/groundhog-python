@@ -23,9 +23,9 @@ This is a Python-first rewrite of the Groundhog assistant. It keeps the same goa
 3. Copy `env.sample` to `.env` (or export env vars) and fill in values (at minimum `OPENAI_API_KEY` and `NOTES_DIR`).
 4. Run the server:
    ```
-   uvicorn groundhog.main:app --reload
+   uvicorn groundhog.main:app --port 8080 --reload
    ```
-5. Connect a client to `ws://localhost:8000/ws` sending JSON `{"message": "...", "pattern": "Plan Day"}`.
+5. Connect a client to `ws://localhost:8080/ws` sending JSON `{"message": "...", "pattern": "Plan Day"}`.
 
 ## Environment
 - `OPENAI_API_KEY` (required)
