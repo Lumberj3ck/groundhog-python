@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from langchain.agents import AgentExecutor, create_tool_calling_agent
@@ -18,11 +19,23 @@ def build_executor(
     memory: Optional[ConversationBufferMemory] = None,
 ) -> AgentExecutor:
     lc_tools = as_langchain_tools(tools)
+    
+    # Get current date/time and timezone
+    now = datetime.now()
+    timezone = now.astimezone().tzinfo
+    current_date = now.strftime("%Y-%m-%d")
+    current_time = now.strftime("%H:%M:%S")
+    timezone_str = str(timezone)
+    
     system_prompt = (
         "You are the Groundhog assistant. Help users manage schedules and tasks "
         "using the provided tools. Prefer tool use when information must be "
-        "retrieved, created, or updated. Keep answers brief and actionable."
+        "retrieved, created, or updated. Keep answers brief and actionable.\n\n"
+        f"Current date: {current_date}\n"
+        f"Current time: {current_time}\n"
+        f"Timezone: {timezone_str}"
     )
+    print(system_prompt)
 
     messages = [
         ("system", system_prompt),
