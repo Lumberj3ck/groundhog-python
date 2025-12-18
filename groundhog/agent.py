@@ -19,14 +19,14 @@ def build_executor(
     memory: Optional[ConversationBufferMemory] = None,
 ) -> AgentExecutor:
     lc_tools = as_langchain_tools(tools)
-    
+
     # Get current date/time and timezone
     now = datetime.now()
     timezone = now.astimezone().tzinfo
     current_date = now.strftime("%Y-%m-%d")
     current_time = now.strftime("%H:%M:%S")
     timezone_str = str(timezone)
-    
+
     system_prompt = (
         "You are the Groundhog assistant. Help users manage schedules and tasks "
         "using the provided tools. Prefer tool use when information must be "
@@ -54,17 +54,17 @@ def build_executor(
     )
 
     agent = create_tool_calling_agent(llm, lc_tools, prompt)
-    
+
     executor_kwargs = {
         "agent": agent,
         "tools": lc_tools,
         "verbose": False,
         "max_iterations": 8,
     }
-    
+
     if memory:
         executor_kwargs["memory"] = memory
-    
+
     return AgentExecutor(**executor_kwargs)
 
 
@@ -72,5 +72,3 @@ def run_agent(executor: AgentExecutor, user_input: str) -> str:
     result: Dict[str, Any] = executor.invoke({"input": user_input})
     # LangChain returns {"input": ..., "output": "..."}
     return str(result.get("output", ""))
-
-

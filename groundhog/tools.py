@@ -39,7 +39,9 @@ class Tool:
 
 class CalculatorTool(Tool):
     name = "calculator"
-    description = "Evaluate a simple math expression. Supports +, -, *, /, %, and power (^)."
+    description = (
+        "Evaluate a simple math expression. Supports +, -, *, /, %, and power (^)."
+    )
 
     def parameters(self) -> Dict[str, Any]:
         return {
@@ -329,5 +331,3 @@ def as_langchain_tools(tools: list[Tool]) -> list[StructuredTool]:
         elif isinstance(tool, CalendarEditTool):
             wrapped.append(_wrap_calendar_edit(tool))
     return wrapped
-
-

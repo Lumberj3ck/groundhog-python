@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import json
 from typing import Dict, Optional, Tuple
 
 from google.oauth2 import service_account, credentials
@@ -51,12 +50,17 @@ def _to_datetime(value: str, tz: Optional[str]) -> Tuple[dt.datetime, bool]:
 
 
 def _compute_end(
-    start: dt.datetime, start_all_day: bool, end: Optional[str], duration_minutes: Optional[int]
+    start: dt.datetime,
+    start_all_day: bool,
+    end: Optional[str],
+    duration_minutes: Optional[int],
 ) -> Tuple[dt.datetime, bool]:
     if end:
         parsed_end, end_all_day = _to_datetime(end, None)
         if start_all_day != end_all_day:
-            raise ValueError("start_time and end_time must both be date-only or both include time")
+            raise ValueError(
+                "start_time and end_time must both be date-only or both include time"
+            )
         return parsed_end, end_all_day
 
     if start_all_day:
@@ -140,7 +144,9 @@ class CalendarClient:
         for event in events:
             start = event.get("start", {})
             when = start.get("dateTime") or start.get("date") or "unknown"
-            lines.append(f"{when} – {event.get('summary', 'Untitled')} (id: {event.get('id')})")
+            lines.append(
+                f"{when} – {event.get('summary', 'Untitled')} (id: {event.get('id')})"
+            )
         return "\n".join(lines)
 
     def add_event(self, raw_input: str) -> str:
@@ -150,7 +156,9 @@ class CalendarClient:
             raise CalendarError(f"Invalid add event payload: {exc}") from exc
 
         start, start_all_day = _to_datetime(payload.start_time, payload.time_zone)
-        end, end_all_day = _compute_end(start, start_all_day, payload.end_time, payload.duration_minutes)
+        end, end_all_day = _compute_end(
+            start, start_all_day, payload.end_time, payload.duration_minutes
+        )
         if end <= start:
             raise CalendarError("end_time must be after start_time")
 
@@ -181,9 +189,13 @@ class CalendarClient:
             raise CalendarError(f"Unable to create event: {exc}") from exc
 
         link = created.get("htmlLink")
-        start_disp = created.get("start", {}).get("dateTime") or created.get("start", {}).get("date")
-        end_disp = created.get("end", {}).get("dateTime") or created.get("end", {}).get("date")
-        base_msg = f'Created calendar event "{created.get("summary","")}" ({start_disp} → {end_disp}).'
+        start_disp = created.get("start", {}).get("dateTime") or created.get(
+            "start", {}
+        ).get("date")
+        end_disp = created.get("end", {}).get("dateTime") or created.get("end", {}).get(
+            "date"
+        )
+        base_msg = f'Created calendar event "{created.get("summary", "")}" ({start_disp} → {end_disp}).'
         if link:
             return f"{base_msg} Link: {link}"
         return base_msg
@@ -196,7 +208,11 @@ class CalendarClient:
 
         try:
             service = _build_service(self._base_credentials)
-            existing = service.events().get(calendarId="primary", eventId=payload.event_id).execute()
+            existing = (
+                service.events()
+                .get(calendarId="primary", eventId=payload.event_id)
+                .execute()
+            )
         except HttpError as exc:
             raise CalendarError(f"Unable to fetch event: {exc}") from exc
 
@@ -210,7 +226,9 @@ class CalendarClient:
         start_raw = payload.start_time or resolve_time(start_info)
         end_raw = payload.end_time or resolve_time(end_info)
 
-        start_dt, start_all_day = _to_datetime(start_raw, tz) if start_raw else (None, False)  # type: ignore[arg-type]
+        start_dt, start_all_day = (
+            _to_datetime(start_raw, tz) if start_raw else (None, False)
+        )  # type: ignore[arg-type]
         if start_dt is None:
             raise CalendarError("Event has no start time; provide start_time")
         end_dt, end_all_day = _compute_end(
@@ -220,7 +238,9 @@ class CalendarClient:
             payload.duration_minutes,
         )
         if start_all_day != end_all_day:
-            raise CalendarError("start_time and end_time must both be date-only or both include time")
+            raise CalendarError(
+                "start_time and end_time must both be date-only or both include time"
+            )
 
         if start_all_day:
             start_block = {"date": start_dt.date().isoformat()}
@@ -241,18 +261,24 @@ class CalendarClient:
         }
 
         try:
-            saved = service.events().update(
-                calendarId="primary", eventId=payload.event_id, body=update_body
-            ).execute()
+            saved = (
+                service.events()
+                .update(
+                    calendarId="primary", eventId=payload.event_id, body=update_body
+                )
+                .execute()
+            )
         except HttpError as exc:
             raise CalendarError(f"Unable to update event: {exc}") from exc
 
         link = saved.get("htmlLink")
-        start_disp = saved.get("start", {}).get("dateTime") or saved.get("start", {}).get("date")
-        end_disp = saved.get("end", {}).get("dateTime") or saved.get("end", {}).get("date")
-        base_msg = f'Updated calendar event "{saved.get("summary","")}" ({start_disp} → {end_disp}).'
+        start_disp = saved.get("start", {}).get("dateTime") or saved.get(
+            "start", {}
+        ).get("date")
+        end_disp = saved.get("end", {}).get("dateTime") or saved.get("end", {}).get(
+            "date"
+        )
+        base_msg = f'Updated calendar event "{saved.get("summary", "")}" ({start_disp} → {end_disp}).'
         if link:
             return f"{base_msg} Link: {link}"
         return base_msg
-
-

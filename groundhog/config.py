@@ -44,5 +44,3 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     # BaseModel can read from environment directly
     return Settings()  # type: ignore[arg-type]
-
-

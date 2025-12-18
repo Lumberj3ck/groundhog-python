@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -52,5 +51,3 @@ def recent_notes(notes_dir: str, limit: int) -> str:
         return "No notes found."
     selected = files[-limit:]
     return format_notes(selected)
-
-

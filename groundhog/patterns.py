@@ -14,5 +14,3 @@ def list_patterns() -> list[str]:
     ordered = [DEFAULT_PATTERN]
     ordered.extend([name for name in PATTERNS.keys() if name != DEFAULT_PATTERN])
     return ordered
-
-

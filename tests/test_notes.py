@@ -10,5 +10,3 @@ def test_format_notes(tmp_path: Path):
     output = format_notes(files)
     assert "hello" in output
     assert "2025-01-01" in output
-
-
